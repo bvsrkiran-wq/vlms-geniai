@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vlms-ppe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vlms-ppe
+  template:
+    metadata:
+      labels:
+        app: vlms-ppe
+    spec:
+      containers:
+      - name: vlms-ppe
+        image: your-dockerhub-user/vlms-ppe:latest
+        ports:
+        - containerPort: 8080
