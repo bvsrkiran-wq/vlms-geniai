@@ -1,12 +1,11 @@
 import cv2, json, sys, os, subprocess
 from ultralytics import YOLO
 
-MODEL_PATH = "ppe_full_v8.pt"
+MODEL_PATH = "ppe_yolov8.pt"
 
-# Download PPE model weights if not already present
 if not os.path.exists(MODEL_PATH):
-    url = "https://github.com/M3GHAN/YOLOv8-Object-Detection/raw/main/yolov8_ppe.pt"
-    print(f"📥 Downloading model weights from {url}...")
+    url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-helmet.pt"
+    print(f"📥 Downloading YOLOv8 PPE model from {url}...")
     subprocess.run(["wget", "-O", MODEL_PATH, url], check=True)
 
 # Load YOLOv8 model
