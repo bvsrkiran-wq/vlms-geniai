@@ -1,18 +1,13 @@
 import cv2, json, sys, os, subprocess
 from ultralytics import YOLO
 
-MODEL_PATH = "ppe_yolov8.pt"
-
+MODEL_PATH = "yolov8n.pt"
 if not os.path.exists(MODEL_PATH):
-    url = "https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-helmet.pt"
-    print(f"📥 Downloading YOLOv8 PPE model from {url}...")
+    url = "https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8n.pt"
+    print(f"📥 Downloading model from {url}")
     subprocess.run(["wget", "-O", MODEL_PATH, url], check=True)
 
-# Load YOLOv8 model
 model = YOLO(MODEL_PATH)
-
-# Define expected PPE classes for compliance
-REQUIRED = {"helmet", "vest", "mask", "gloves", "glasses", "boots"}
 
 def evaluate(video_path):
     if not os.path.exists(video_path):
@@ -30,9 +25,8 @@ def evaluate(video_path):
         results = model(frame, verbose=False)[0]
         detected = {model.names[int(c)] for c in results.boxes.cls}
 
-        # Rule: person present but missing PPE
-        if "person" in detected and not REQUIRED.issubset(detected):
-            violations += 1
+        # Rule: if a person is detected but no helmet detected
+        violations += 1 if "person" in detected and "helmet" not in detected else 0
 
     cap.release()
 
@@ -47,8 +41,7 @@ def evaluate(video_path):
     with open("metrics.json", "w") as f: json.dump(metrics, f, indent=2)
     with open("metrics.txt", "w") as f: f.write(str(metrics))
 
-    print("✅ PPE Evaluation complete:", metrics)
+    print("✅ PPE Eval completed:", metrics)
 
 if __name__ == "__main__":
-    video = sys.argv[1] if len(sys.argv) > 1 else "sample_ppe_video.mp4"
-    evaluate(video)
+    evaluate(sys.argv[1] if len(sys.argv) > 1 else "sample_ppe_video.mp4")
