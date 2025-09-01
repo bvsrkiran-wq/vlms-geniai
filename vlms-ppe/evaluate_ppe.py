@@ -1,12 +1,18 @@
-import cv2, json, sys, os
+import cv2, json, sys, os, subprocess
 from ultralytics import YOLO
 
 MODEL_PATH = "ppe_full_v8.pt"
-if not os.path.exists(MODEL_PATH):
-    !wget -O ppe_full_v8.pt https://github.com/M3GHAN/YOLOv8-Object-Detection/raw/main/yolov8_ppe.pt
 
+# Download PPE model weights if not already present
+if not os.path.exists(MODEL_PATH):
+    url = "https://github.com/M3GHAN/YOLOv8-Object-Detection/raw/main/yolov8_ppe.pt"
+    print(f"📥 Downloading model weights from {url}...")
+    subprocess.run(["wget", "-O", MODEL_PATH, url], check=True)
+
+# Load YOLOv8 model
 model = YOLO(MODEL_PATH)
 
+# Define expected PPE classes for compliance
 REQUIRED = {"helmet", "vest", "mask", "gloves", "glasses", "boots"}
 
 def evaluate(video_path):
@@ -19,14 +25,13 @@ def evaluate(video_path):
 
     while True:
         ret, frame = cap.read()
-        if not ret:
-            break
+        if not ret: break
         frame_count += 1
 
         results = model(frame, verbose=False)[0]
         detected = {model.names[int(c)] for c in results.boxes.cls}
 
-        # Violation if a person is detected without any required PPE
+        # Rule: person present but missing PPE
         if "person" in detected and not REQUIRED.issubset(detected):
             violations += 1
 
@@ -40,14 +45,11 @@ def evaluate(video_path):
         "violations_per_hour": round(violations / (frame_count/30/3600), 2) if frame_count else 0
     }
 
-    with open("metrics.json", "w") as f:
-        json.dump(metrics, f, indent=2)
-    with open("metrics.txt", "w") as f:
-        f.write(str(metrics))
+    with open("metrics.json", "w") as f: json.dump(metrics, f, indent=2)
+    with open("metrics.txt", "w") as f: f.write(str(metrics))
 
     print("✅ PPE Evaluation complete:", metrics)
 
 if __name__ == "__main__":
     video = sys.argv[1] if len(sys.argv) > 1 else "sample_ppe_video.mp4"
     evaluate(video)
-
