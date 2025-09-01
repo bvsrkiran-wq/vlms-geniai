@@ -1,0 +1,10 @@
+{
+  "email": {
+    "enabled": false
+  },
+  "webhook": {
+    "enabled": false
+  },
+  "snapshot_dir": "/violations",
+  "retention_days": 30
+}
