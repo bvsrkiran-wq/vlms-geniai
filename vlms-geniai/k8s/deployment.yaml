@@ -17,3 +17,15 @@ spec:
         image: your-dockerhub-user/vlms-ppe:latest
         ports:
         - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vlms-ppe-service
+spec:
+  selector:
+    app: vlms-ppe
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
